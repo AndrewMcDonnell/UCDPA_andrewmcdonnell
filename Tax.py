@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime as dt
 
 #Importing CSV
 tax = pd.read_csv('Open Data Tax Receipts Source.csv')
@@ -34,3 +35,22 @@ tax_cols['FullDate'] = date + pd.offsets.MonthEnd()
 #After looking at file it turns out December has a few blank spaces after it.
 print(tax_cols.isna().sum())
 print(tax_cols.head())
+
+#Looking at live register data
+live_reg = pd.read_csv('Live Register.csv')
+
+#Reformatting the Month column so I can match it with the tax info
+date_live_reg = pd.to_datetime(live_reg['Month'], format='%YM%M')
+live_reg['FullDate'] = date_live_reg + pd.offsets.MonthEnd()
+
+print(live_reg.head())
+
+#Creating a dataframe that just contains all ages, both sexes, all classes
+filt = ((live_reg['Age Group'] == 'All ages') & (live_reg['Sex'] == 'Both sexes') & (live_reg['Social Welfare Scheme'] == 'All classes'))
+
+live_reg_merge = live_reg[filt]
+print(live_reg_merge)
+
+#Merging the tables
+tax_live_reg_merge = pd.merge_asof(tax_cols, live_reg_merge, on='FullDate', direction='forward')
+print(tax_live_reg_merge)
