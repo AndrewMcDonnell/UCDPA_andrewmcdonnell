@@ -45,12 +45,25 @@ live_reg['FullDate'] = date_live_reg + pd.offsets.MonthEnd()
 
 print(live_reg.head())
 
-#Creating a dataframe that just contains all ages, both sexes, all classes
+#Creating a maak filter that just contains all ages, both sexes, all classes
 filt = ((live_reg['Age Group'] == 'All ages') & (live_reg['Sex'] == 'Both sexes') & (live_reg['Social Welfare Scheme'] == 'All classes'))
 
+#Checking the mask works
 live_reg_merge = live_reg[filt]
 print(live_reg_merge)
 
 #Merging the tables
 tax_live_reg_merge = pd.merge_asof(tax_cols, live_reg_merge, on='FullDate', direction='forward')
 print(tax_live_reg_merge)
+
+actual_filt = (tax_live_reg_merge['Actual/Projected'] == 'Actual Outturn')
+tax_live_reg_actual = tax_live_reg_merge[actual_filt]
+
+
+#Tables - need to adjust for profile v actual outturn in tax
+total_tax_live_reg_actual = (tax_live_reg_actual.groupby(['Year'])['Amount (000s)'].sum())
+total_tax_live_reg_actual.plot(kind='bar', color='limegreen', width=0.6)
+plt.xlabel('Year')
+plt.ylabel('Tax Revenue in €bn')
+plt.title('Tax Revenue per Year')
+plt.show()
