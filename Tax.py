@@ -6,6 +6,7 @@ import datetime as dt
 #Importing CSV
 tax = pd.read_csv('Open Data Tax Receipts Source.csv')
 live_reg = pd.read_csv('Live Register.csv')
+
 #pd.set_option('display.max_columns',50)
 
 #Checking Tax CSV
@@ -45,7 +46,11 @@ tax_heads_list = []
 for i in tax_heads:
         tax_heads_list.append(i)
 
-#print(tax_heads_list)
+#Change tax collected to rounded millions
+
+tax_cols['Amount (MM)'] = (tax_cols['Amount (000s)'] / 1000).astype(int)
+
+print(tax_heads_list)
 
 tax_dict = {'Tax Head': tax_heads_list,
         'Tax Heads Short': ['CUST','EXD','CGT','SD','IT','CORP','VAT','TEL','MOT','UNA','CAT','LPT']}
@@ -56,7 +61,9 @@ tax_dict_pd = pd.DataFrame(data=tax_dict)
 tax_cols_short = tax_cols.merge(tax_dict_pd, on='Tax Head', how='left')
 print(tax_cols_short)
 
-actual_filter = (tax_cols_short['Actual/Projected'] == 'Actual Outturn')
+#Removing the projected rows and 2021 (not complete data)
+
+actual_filter = (tax_cols_short['Actual/Projected'] == 'Actual Outturn') & (tax_cols_short['Year'] != 2021)
 tax_final = tax_cols_short[actual_filter]
 
 print(tax_final['Actual/Projected'].unique())
@@ -100,12 +107,10 @@ print(tax_live_reg_final)
 #Checking there are no errors
 print(tax_live_reg_final.isna().sum())
 
-#Tables - need to adjust for profile v actual outturn in tax
-#total_tax_live_reg_actual = (tax_live_reg_actual.groupby(['Year'])['Amount (000s)'].sum())
-#total_tax_live_reg_actual.plot(kind='bar', color='limegreen', width=0.6)
-#plt.xlabel('Year')
-#plt.ylabel('Tax Revenue in €bn')
-#plt.title('Tax Revenue per Year')
+#Tables
+tax_live_reg_chart = (tax_live_reg_final.groupby(['Year'])['Amount (MM)'].sum())
+tax_live_reg_chart.plot(kind='bar', color='limegreen', width=0.6)
+plt.xlabel('Year')
+plt.ylabel('Tax revenue (€ millions)')
+plt.title('Tax revenue per year')
 #plt.show()
-
-#print(tax_live_reg_actual.columns)
