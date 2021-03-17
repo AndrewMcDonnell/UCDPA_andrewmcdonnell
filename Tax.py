@@ -60,7 +60,7 @@ tax_dict = {'Tax Head': tax_heads_list,
         'Tax Heads Short': ['OTHER','EXD','CGT','SD','IT','CORP','VAT','OTHER','OTHER','UNA','OTHER','OTHER']}
 
 tax_dict_pd = pd.DataFrame(data=tax_dict)
-print(tax_dict_pd)
+#print(tax_dict_pd)
 
 tax_cols_short = tax_cols.merge(tax_dict_pd, on='Tax Head', how='left')
 #print(tax_cols_short)
@@ -131,9 +131,9 @@ unemp2020 = np.array([[183900,182500,209400,216900,227900,213700,226100,213700,2
 
 total_unemployed_pup = (final_data.groupby(['Year'])['VALUE_#'].max())
 
-unemp2020_mean = unemp2020.max()
+unemp2020_max = unemp2020.max()
 
-total_unemployed_pup.iloc[-1] = unemp2020_mean
+total_unemployed_pup.iloc[-1] = unemp2020_max
 
 #print(total_unemployed_pup)
 
@@ -160,11 +160,12 @@ time = final_data['Year'].unique()
 tax_data= (final_data.groupby(['Year'])['Amount (MM)'].sum())
 unemployment_data = (final_data.groupby(['Year'])['VALUE_%'].mean())
 
-fig, ax1 = plt.subplots()
+plt.style.use('ggplot')
+fig1, ax1 = plt.subplots()
 
 color = 'mediumseagreen'
 ax1.set_title('Irish tax revenue and unemployment trend')
-ax1.set_xlabel('Years')
+ax1.set_xlabel('Year')
 ax1.set_ylabel('Tax revenue (€ millions)')
 ax1.bar(time, tax_data, color = color)
 ax1.tick_params(axis='y', labelcolor = color)
@@ -172,24 +173,48 @@ ax1.tick_params(axis='y', labelcolor = color)
 ax2 = ax1.twinx()
 
 color2 = 'coral'
-ax2.set_ylabel('Average Unemployment %')
+ax2.set_ylabel('Average unemployment %')
 ax2.plot(time, unemployment_data, color=color2, marker='.', linestyle='--')
 ax2.tick_params(axis='y', labelcolor = color2)
 
+fig1.savefig('Irish tax revenue and unemployment trend', dpi=100)
+
 plt.show()
 
+
 #----unemployed barchart----
-total_unemployed_pup.plot(kind='bar', color='limegreen', width=0.6)
+total_unemployed_pup.plot(kind='bar', color='mediumseagreen', width=0.6)
 plt.xlabel('Year')
-plt.ylabel('Tax revenue (€ millions)')
-plt.title('Tax revenue per year')
+plt.ylabel('Number of people on the live register')
+plt.title('Highest number of people on the live register')
+
+plt.savefig('Number of people on the live register', dpi=100, bbox_inches='tight')
+
 plt.show()
 
 #----Tables----
-#print(final_data.groupby(['Year'])['VALUE_%'].mean())
-#print(final_data.groupby(['Year'])['VALUE_#'].mean())
-#print(final_data.groupby(['Tax Heads Short'])['Amount (MM)'].sum().sort_values(ascending=False))
-#print(final_data.groupby(['Year'])['Amount (MM)'].sum().sort_values(ascending=False))
+print(final_data.groupby(['Year'])['VALUE_%'].mean().sort_values(ascending=False))
+print(final_data.groupby(['Year'])['VALUE_#'].min().sort_values(ascending=False))
+print(final_data.groupby(['Tax Heads Short'])['Amount (MM)'].sum().sort_values(ascending=False))
+print(final_data.groupby(['Year'])['Amount (MM)'].sum().sort_values(ascending=False))
+print(np.sort(total_unemployed_pup))
+
+#----Percentage calculations----
+pct1 = (final_data.groupby(['Tax Heads Short'])['Amount (000s)'].sum().sort_values(ascending=False))
+pct1['PCT'] = ((pct1 / pct1.sum()) * 100)
+print(pct1['PCT'])
 
 
+tax_2020_filter = (final_data['Year'] == 2020)
+tax_filter_final = final_data[tax_2020_filter]
+pct2020 = (tax_filter_final.groupby(['Tax Heads Short'])['Amount (MM)'].sum().sort_values(ascending=False))
+print(pct2020)
+pct2020['PCT'] = ((pct2020 / pct2020.sum()) * 100)
+print(pct2020['PCT'])
 
+tax_1984_filter = (final_data['Year'] == 1984)
+tax_filter_final = final_data[tax_1984_filter]
+pct1984 = (tax_filter_final.groupby(['Tax Heads Short'])['Amount (MM)'].sum().sort_values(ascending=False))
+print(pct1984)
+pct1984['PCT'] = ((pct1984 / pct1984.sum()) * 100)
+print(pct1984['PCT'])
